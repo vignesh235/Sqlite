@@ -1,5 +1,8 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:local_db/DB/database_helper.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -25,6 +28,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+
     _refreshData(); // Loading the data when the app starts
   }
 
@@ -75,20 +79,32 @@ class _HomePageState extends State<HomePage> {
                   ElevatedButton(
                     onPressed: () async {
                       // Save new data
-                      if (id == null) {
-                        await addItem();
+
+                      var connectivityResult =
+                          await (Connectivity().checkConnectivity());
+                      print(
+                          "[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]][]]]]]]");
+                      print(connectivityResult.toString());
+                      if (connectivityResult != ConnectivityResult.none) {
+                        print(myData);
+
+                        
+                      } else {
+                        if (id == null) {
+                          await addItem();
+                        }
+
+                        if (id != null) {
+                          await updateItem(id);
+                        }
+
+                        // Clear the text fields
+                        _titleController.text = '';
+                        _descriptionController.text = '';
+
+                        // Close the bottom sheet
+                        Navigator.of(context).pop();
                       }
-
-                      if (id != null) {
-                        await updateItem(id);
-                      }
-
-                      // Clear the text fields
-                      _titleController.text = '';
-                      _descriptionController.text = '';
-
-                      // Close the bottom sheet
-                      Navigator.of(context).pop();
                     },
                     child: Text(id == null ? 'Create New' : 'Update'),
                   )

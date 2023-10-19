@@ -113,6 +113,7 @@ class DatabaseHelper {
   }
 
   static Future<void> deleteItem2(int id) async {
+    print(id);
     final db = await DatabaseHelper.db();
     try {
       await db.delete("Attendance", where: "id = ?", whereArgs: [id]);
