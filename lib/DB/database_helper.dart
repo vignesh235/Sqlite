@@ -1,5 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart' as sql;
+import 'dart:convert';
+
+final data = {
+  "items": [
+    {"item_code": "2", "qty": "2"},
+  ],
+};
+
+final String dataAsJson = json.encode(data);
 
 class DatabaseHelper {
   static Future<void> createTables(sql.Database database) async {
@@ -15,12 +24,24 @@ class DatabaseHelper {
   static Future<void> createOtherTable2(sql.Database database) async {
     await database.execute("""CREATE TABLE Attendance(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    list_id INTEGER, 
     salary TEXT,
-    number INTEGER
+    item_ TEXT,
+    number INTEGER,
+
+    FOREIGN KEY (list_id) REFERENCES List(id)
   )
   """);
   }
 
+  static Future<void> createListTable3(sql.Database database) async {
+    await database.execute("""
+      CREATE TABLE List(
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        item_name TEXT
+      )
+    """);
+  }
 // id: the id of a item
 // title, description: name and description of your activity
 // created_at: the time that the item was created. It will be automatically handled by SQLite
@@ -32,6 +53,7 @@ class DatabaseHelper {
       onCreate: (sql.Database database, int version) async {
         await createTables(database);
         await createOtherTable2(database);
+        await createListTable3(database);
       },
     );
   }
@@ -49,7 +71,7 @@ class DatabaseHelper {
   static Future<int> createItem2(String? salary, String? number) async {
     final db = await DatabaseHelper.db();
 
-    final data = {'salary': salary, 'number': number};
+    final data = {'salary': salary, 'number': number, 'item_': dataAsJson};
     final id = await db.insert('Attendance', data,
         conflictAlgorithm: sql.ConflictAlgorithm.replace);
     return id;
@@ -91,7 +113,7 @@ class DatabaseHelper {
 
   static Future<int> updateItem2(int id, String salary, String? number) async {
     final db = await DatabaseHelper.db();
-
+    print("ppppppppppppppppppppppppppp");
     final data = {
       'salary': salary,
       'number': number,
@@ -114,6 +136,7 @@ class DatabaseHelper {
 
   static Future<void> deleteItem2(int id) async {
     print(id);
+    print("delete");
     final db = await DatabaseHelper.db();
     try {
       await db.delete("Attendance", where: "id = ?", whereArgs: [id]);

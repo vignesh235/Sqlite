@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:local_db/DB/database_helper.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -85,11 +86,8 @@ class _HomePageState extends State<HomePage> {
                       print(
                           "[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]][]]]]]]");
                       print(connectivityResult.toString());
-                      if (connectivityResult != ConnectivityResult.none) {
-                        print(myData);
-
-                        
-                      } else {
+                      if (connectivityResult == ConnectivityResult.none) {
+                        print("pppppppppppppppppppppppppppppppppp");
                         if (id == null) {
                           await addItem();
                         }
@@ -104,6 +102,34 @@ class _HomePageState extends State<HomePage> {
 
                         // Close the bottom sheet
                         Navigator.of(context).pop();
+                        print(myData);
+                      } else {
+                        const baseUrl =
+                            "https://smb.thirvusoft.co.in/api/method/ssm_bore_wells.ssm_bore_wells.utlis.api.sales_order";
+                        print(myData);
+                        for (var item in myData) {
+                          final salary = item['salary'];
+                          final item_ = item['item_'];
+                          const number = "2023-10-20";
+
+                          print(item['salary']);
+                          print(item['item_']);
+
+                          final response = await http.get(Uri.parse(
+                              '$baseUrl?cus_name=$salary&due_date=$number&items=$item_'));
+                          print(response.body);
+                          if (response.statusCode == 200) {
+                            print(item['id']);
+                            await DatabaseHelper.deleteItem2(item['id']);
+                            _refreshData();
+                            // Successful response
+                            print("Response data: ${response.body}");
+                          } else {
+                            // Handle error or failure
+                            print(
+                                "Failed to fetch data. Status code: ${response.statusCode}");
+                          }
+                        }
                       }
                     },
                     child: Text(id == null ? 'Create New' : 'Update'),
@@ -139,6 +165,14 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        actions: <Widget>[
+          TextButton(
+            onPressed: () async {
+              print("teststststststststtstststs");
+            },
+            child: Text('Save'),
+          ),
+        ],
         title: const Text('Sqlite CRUD'),
       ),
       body: _isLoading
@@ -153,8 +187,8 @@ class _HomePageState extends State<HomePage> {
                     color: index % 2 == 0 ? Colors.green : Colors.green[200],
                     // margin: const EdgeInsets.all(15),
                     child: ListTile(
-                        title: Text(myData[index]['salary']),
-                        subtitle: Text(myData[index]['number']),
+                        title: Text(myData[index].toString()),
+                        subtitle: Text(myData[index]['number'].toString()),
                         trailing: SizedBox(
                           width: 100,
                           child: Row(
