@@ -1,9 +1,11 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:local_db/DB/database_helper.dart';
-import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:local_db/item_list.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -15,6 +17,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   // All data
   List<Map<String, dynamic>> myData = [];
+  DatabaseHelper_ databaseHelper = DatabaseHelper_();
 
   bool _isLoading = true;
   // This function is used to fetch all data from the database
@@ -35,7 +38,7 @@ class _HomePageState extends State<HomePage> {
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-
+  String base64Image = "";
   // This function will be triggered when the floating button is pressed
   // It will also be triggered when you want to update an item
   void showMyForm(int? id) async {
@@ -86,7 +89,7 @@ class _HomePageState extends State<HomePage> {
                       print(
                           "[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]][]]]]]]");
                       print(connectivityResult.toString());
-                      if (connectivityResult == ConnectivityResult.none) {
+                      if (connectivityResult != ConnectivityResult.none) {
                         print("pppppppppppppppppppppppppppppppppp");
                         if (id == null) {
                           await addItem();
@@ -122,10 +125,9 @@ class _HomePageState extends State<HomePage> {
                             print(item['id']);
                             await DatabaseHelper.deleteItem2(item['id']);
                             _refreshData();
-                            // Successful response
+
                             print("Response data: ${response.body}");
                           } else {
-                            // Handle error or failure
                             print(
                                 "Failed to fetch data. Status code: ${response.statusCode}");
                           }
@@ -142,7 +144,7 @@ class _HomePageState extends State<HomePage> {
 // Insert a new data to the database
   Future<void> addItem() async {
     await DatabaseHelper.createItem2(
-        _titleController.text, _descriptionController.text);
+        _titleController.text, _descriptionController.text, base64Image);
     _refreshData();
   }
 
@@ -168,7 +170,27 @@ class _HomePageState extends State<HomePage> {
         actions: <Widget>[
           TextButton(
             onPressed: () async {
+              String customer = "John Doe";
+              String base64Image = "your_base64_image_data";
+              String item = "Your Item Name";
+
+              await databaseHelper.createItem(customer, base64Image, item);
+
+              var item_ = await databaseHelper.getItems();
+              print(item_);
+
               print("teststststststststtstststs");
+              http.Response response = await http.get(Uri.parse(
+                  'https://cdn-images-1.medium.com/max/1200/1*5-aoK8IBmXve5whBQM90GA.png'));
+
+              Uint8List imageBytes = response.bodyBytes; // your image data
+
+              setState(() {
+                base64Image = base64Encode(imageBytes);
+              });
+
+              print("teststststststststtstststs");
+              print(base64Image);
             },
             child: Text('Save'),
           ),
@@ -180,14 +202,18 @@ class _HomePageState extends State<HomePage> {
               child: CircularProgressIndicator(),
             )
           : myData.isEmpty
-              ? const Center(child: Text("No Data Available!!!"))
+              ? Center(
+                  child: SingleChildScrollView(
+                      child: Image.memory(base64.decode(base64Image))))
               : ListView.builder(
                   itemCount: myData.length,
                   itemBuilder: (context, index) => Card(
                     color: index % 2 == 0 ? Colors.green : Colors.green[200],
                     // margin: const EdgeInsets.all(15),
                     child: ListTile(
-                        title: Text(myData[index].toString()),
+                        leading:
+                            Image.memory(base64.decode(myData[index]["image"])),
+                        title: Text(myData[index]["salary"].toString()),
                         subtitle: Text(myData[index]['number'].toString()),
                         trailing: SizedBox(
                           width: 100,
