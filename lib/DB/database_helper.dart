@@ -24,12 +24,10 @@ class DatabaseHelper {
   static Future<void> createOtherTable2(sql.Database database) async {
     await database.execute("""CREATE TABLE Attendance(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    list_id INTEGER, 
     salary TEXT,
     item_ TEXT,
-    number INTEGER,
-
-    FOREIGN KEY (list_id) REFERENCES List(id)
+    image TEXT,
+    number INTEGER
   )
   """);
   }
@@ -59,7 +57,8 @@ class DatabaseHelper {
   }
 
   // Create new item
-  static Future<int> createItem(String? title, String? descrption) async {
+  static Future<int> createItem(
+      String? title, String? descrption, String s) async {
     final db = await DatabaseHelper.db();
 
     final data = {'title': title, 'description': descrption};
@@ -68,10 +67,16 @@ class DatabaseHelper {
     return id;
   }
 
-  static Future<int> createItem2(String? salary, String? number) async {
+  static Future<int> createItem2(
+      String? salary, String? number, String base64) async {
     final db = await DatabaseHelper.db();
 
-    final data = {'salary': salary, 'number': number, 'item_': dataAsJson};
+    final data = {
+      'salary': salary,
+      'number': number,
+      'item_': dataAsJson,
+      "image": base64
+    };
     final id = await db.insert('Attendance', data,
         conflictAlgorithm: sql.ConflictAlgorithm.replace);
     return id;
